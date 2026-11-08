@@ -1,0 +1,10 @@
+set requiredLanguages = ["German"]
+prepend preferredLanguages "German"
+add excludedStreamExpressions {
+  "expression": "negate(audioTrack(streams, 'lang=German'), streams)",
+  "enabled": true
+}
+add excludedStreamExpressions {
+  "expression": "mediaInfoQuality(streams, 'unknown')",
+  "enabled": true
+}
