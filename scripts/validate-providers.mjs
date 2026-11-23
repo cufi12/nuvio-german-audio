@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve, relative, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -13,9 +13,12 @@ const ids = new Set();
 for (const provider of manifest.providers) {
   if (!provider.id || ids.has(provider.id)) throw new Error("Missing or duplicate provider id: " + provider.id);
   ids.add(provider.id);
-  if (!["movie", "tv"].every(type => provider.supportedTypes.includes(type)) &&
-      !provider.supportedTypes.every(type => ["movie", "tv"].includes(type))) {
-    throw new Error("Unsupported media type in provider: " + provider.id);
+  if (!Array.isArray(provider.supportedTypes) || provider.supportedTypes.length === 0 ||
+      provider.supportedTypes.some(type => !["movie", "tv"].includes(type))) {
+    throw new Error("Missing or unsupported media types in provider: " + provider.id);
+  }
+  if (typeof provider.filename !== "string" || !provider.filename.endsWith(".js")) {
+    throw new Error("Invalid provider filename: " + provider.id);
   }
   const file = resolve(root, provider.filename);
   const rel = relative(root, file);
