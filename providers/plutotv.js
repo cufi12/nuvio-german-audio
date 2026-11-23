@@ -70,7 +70,7 @@ function streamFrom(stitched, servers, token, title) {
     return null;
   }
   return {
-    name: "Pluto TV · Deutsch",
+    name: "Pluto TV",
     title: title || "Pluto TV",
     url,
     quality,
