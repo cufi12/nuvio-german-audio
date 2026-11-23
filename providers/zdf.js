@@ -48,6 +48,11 @@ function titleMatches(candidate, titles) {
   });
 }
 
+function isGermanTrack(language) {
+  // ZDF reports ISO language tags such as "de", "de-DE" or "deu".
+  return /^(de(?:[-_]|$)|deu$|ger$)/i.test(String(language || "").trim());
+}
+
 async function getVideo(canonical) {
   const result = await graphql("GetPlayableVideoByCanonical", HASH.video, { canonical });
   return result && result.data && result.data.videoByCanonical;
@@ -66,7 +71,7 @@ async function playableStreams(canonical, displayTitle) {
     for (const format of (group.formitaeten || [])) {
       for (const quality of (format.qualities || [])) {
         for (const track of ((quality.audio && quality.audio.tracks) || [])) {
-          if (!track.uri) continue;
+          if (!track.uri || !isGermanTrack(track.language)) continue;
           streams.push({
             name: "ZDF · Deutsch",
             title: displayTitle || video.title || "ZDF",
@@ -117,16 +122,20 @@ module.exports = {
       const selected = yearMatches.length ? yearMatches : matches;
       const streams = [];
 
-      for (const item of selected.slice(0, 5)) {
-        if (mediaType === "movie") {
+      if (mediaType === "movie") {
+        for (const item of selected.slice(0, 5)) {
           const canonical = item.video && item.video.canonical;
           if (canonical) streams.push(...await playableStreams(canonical, item.title));
           else if (item.canonical) {
             try { streams.push(...await playableStreams(item.canonical, item.title)); } catch (_) {}
           }
-          continue;
         }
+        return streams;
+      }
 
+      // Bound series/episode expansion so a single invocation stays under
+      // DebridUI's request budget (24 requests per provider call).
+      for (const item of selected.slice(0, 2)) {
         const detail = await graphql("GetSmartCollectionByCanonical", HASH.collection, {
           canonical: item.canonical
         });
@@ -144,9 +153,9 @@ module.exports = {
           }
         }
         if (!selectedEpisodes.length && season == null && episode == null) {
-          selectedEpisodes = seasons.flatMap(s => (s.episodes && s.episodes.videos) || []).slice(0, 3);
+          selectedEpisodes = seasons.flatMap(s => (s.episodes && s.episodes.videos) || []).slice(0, 2);
         }
-        for (const video of selectedEpisodes.slice(0, 3)) {
+        for (const video of selectedEpisodes.slice(0, 2)) {
           streams.push(...await playableStreams(video.canonical, video.title || item.title));
         }
       }
