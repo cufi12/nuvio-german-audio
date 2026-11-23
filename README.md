@@ -1,22 +1,23 @@
-# Nuvio – deutsche Audiospuren
+# Deutsche Provider für DebridUI
 
-Diese Ablage enthält eine AIOStreams-CEL-Variante, die Streams mit einer erkannten deutschen Audiospur bevorzugt und Streams ohne bestätigte deutsche Audiospur ausschließt.
+Dieses Repository stellt Provider im JavaScript-Format bereit, das DebridUI über seine Provider-Repository-Funktion ausführen kann.
 
-## Dateien
+## Installation in DebridUI
 
-- `aiostreams-german-audio.cel` – CEL-Variante für AIOStreams.
+Repository-Manifest:
 
-## Wichtig
+`https://raw.githubusercontent.com/cufi12/nuvio-german-audio/main/manifest.json`
 
-Diese Datei ist **kein eigenständiges Stremio-/Nuvio-Addon und keine fertige Manifest-URL**. Sie muss in einer AIOStreams-Konfiguration als Variante hinterlegt und dort gespeichert werden.
+In DebridUI unter **Addons / Provider-Repositories** als Repository-URL hinzufügen. Anschließend den gewünschten Provider aktivieren.
 
-Der Filter verlangt eine von AIOStreams erkannte deutsche Audiospur. Dafür müssen Audio-Track-Metadaten verfügbar sein. Streams ohne auslesbare Track-Informationen werden absichtlich ausgeschlossen; dadurch kann die Ergebnisliste kleiner werden.
+## Enthaltener Provider
 
-Der Filter verlangt mindestens eine deutsche Audiospur. Er garantiert nicht, dass eine Datei keine zusätzlichen anderssprachigen Audiospuren enthält.
+- **Serienstream** – Serien und Episoden; die Zuordnung erfolgt über TMDB-Metadaten.
 
-## Verwendung
+## Hinweise
 
-1. AIOStreams-Konfiguration öffnen: https://aiostreams.elfhosted.com/stremio/configure
-2. In der Konfiguration den Bereich für CEL-Varianten öffnen.
-3. Den Inhalt aus `aiostreams-german-audio.cel` als neue Variante einfügen.
-4. Speichern und anschließend die persönliche Manifest-URL in Nuvio unter **Einstellungen → Addons → Add Addon** hinzufügen.
+- Der frühere AIOStreams-CEL-Audiofilter ist nicht mehr Bestandteil dieses Repositorys.
+- Provider müssen in DebridUI separat aktiviert werden.
+- Die Quelle und Hoster können sich ändern oder vorübergehend nicht erreichbar sein. CAPTCHA- oder Anti-Bot-Sperren werden nicht umgangen.
+- Dieses Projekt ist eine unabhängige Anpassung für DebridUI und wird nicht von Bnyro oder den Streaming-Anbietern betrieben.
+- Die ursprüngliche Provider-Referenz ist [Bnyro/GermanProviders](https://github.com/Bnyro/GermanProviders). Die DebridUI-Kompatibilitätsgrundlage stammt aus [cufi12/debridui](https://github.com/cufi12/debridui).
