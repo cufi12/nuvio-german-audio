@@ -399,8 +399,17 @@ function score(title, year, meta) {
 // src/serienstream/common.js
 function followRedirect(url, referer) {
   return __async(this, null, function* () {
-    const res = yield send(url, { headers: { "User-Agent": UA, Referer: referer } });
-    return res.url && res.url !== url ? res.url : null;
+    const absolute = new URL(url, BASE).href;
+    const res = yield send(absolute, { headers: { "User-Agent": UA, Referer: referer } });
+    if (res.url && res.url !== absolute) return res.url;
+    const location = res.headers && res.headers.get("location");
+    if (location) return new URL(location, absolute).href;
+    const html = yield res.text().catch(() => "");
+    const redirect = html.match(/(?:window\.)?location(?:\.href)?\s*=\s*["']([^"']+)["']/i)
+      || html.match(/(?:window\.)?location\.replace\(["']([^"']+)["']\)/i)
+      || html.match(/<meta[^>]+http-equiv=["']?refresh["']?[^>]+content=["'][^"']*url=([^"' >]+)/i)
+      || html.match(/<iframe[^>]+src=["']([^"']+)["']/i);
+    return redirect ? new URL(redirect[1], res.url || absolute).href : absolute;
   });
 }
 function pickSeries(items, meta, base) {
@@ -453,11 +462,12 @@ function getStreams(tmdbId, mediaType, season, episode) {
       const episodePage = (path) => __async(null, null, function* () {
         const epUrl2 = BASE + path;
         const $ = load(yield getText(epUrl2).catch(() => ""));
-        const links2 = all($, ".link-wrapper button").filter((b) => b.attr("data-provider-name") !== "Provider").map((b) => ({
-          url: b.attr("data-play-url"),
-          lang: b.attr("data-language-label"),
-          langId: b.attr("data-language-id")
-        }));
+        const links2 = all($, "[data-play-url], .link-wrapper button, .link-wrapper a").map((b) => ({
+          url: b.attr("data-play-url") || b.attr("data-url") || b.attr("href"),
+          provider: b.attr("data-provider-name") || b.attr("data-provider") || "",
+          lang: b.attr("data-language-label") || b.attr("data-language") || b.attr("title") || "",
+          langId: b.attr("data-language-id") || ""
+        })).filter((l) => l.url && !/^provider$/i.test(l.provider));
         return { epUrl: epUrl2, links: links2 };
       });
       let page = yield episodePage(`${series.link}/staffel-${season}/episode-${episode}`);
@@ -466,20 +476,25 @@ function getStreams(tmdbId, mediaType, season, episode) {
         if (split) page = yield episodePage(split);
       }
       const { epUrl, links } = page;
-      for (const langId of ["1", "3", "2"]) {
-        const out = yield Promise.all(links.filter((l) => l.langId === langId).map((l) => __async(null, null, function* () {
-          const embed = yield followRedirect(BASE + l.url, epUrl).catch(() => null);
-          return (yield resolveEmbed(embed, epUrl)).map((s) => ({
-            name: "Serienstream",
-            title: `${s.host} \xB7 ${l.lang}`,
-            url: s.url,
-            quality: s.quality,
-            headers: s.headers
-          }));
-        })));
-        const streams = [].concat(...out);
-        if (streams.length) return streams;
-      }
+      const orderedLinks = links.slice().sort((a, b) => {
+        const rank = (id) => {
+          const n = ["1", "3", "2"].indexOf(String(id || ""));
+          return n < 0 ? 3 : n;
+        };
+        return rank(a.langId) - rank(b.langId);
+      });
+      const out = yield Promise.all(orderedLinks.map((l) => __async(null, null, function* () {
+        const embed = yield followRedirect(l.url, epUrl).catch(() => null);
+        return (yield resolveEmbed(embed, epUrl)).map((s) => ({
+          name: "Serienstream",
+          title: s.host + " · " + (l.lang || "Unbekannte Sprache"),
+          url: s.url,
+          quality: s.quality,
+          headers: s.headers
+        }));
+      })));
+      const streams = [].concat(...out);
+      if (streams.length) return streams;
     } catch (e) {
       console.error(`[Serienstream] ${e.message}`);
     }
