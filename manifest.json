@@ -1,6 +1,6 @@
 {
   "name": "German Providers für DebridUI",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Deutsche Serien- und Filmquellen, für DebridUI angepasst.",
   "providers": [
     {
@@ -9,9 +9,15 @@
       "description": "Deutsche Serienquelle; sucht Serien über TMDB und löst Episoden-Hoster auf.",
       "version": "1.0.0",
       "filename": "providers/serienstream.js",
-      "supportedTypes": [
-        "tv"
-      ]
+      "supportedTypes": ["tv"]
+    },
+    {
+      "id": "netzkino",
+      "name": "Netzkino",
+      "description": "Deutsche Filmquelle mit direkten MP4-Streams.",
+      "version": "1.0.0",
+      "filename": "providers/netzkino.js",
+      "supportedTypes": ["movie"]
     }
   ]
 }
