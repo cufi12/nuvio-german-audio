@@ -101,9 +101,7 @@ module.exports = {
         const typeOk = mediaType === "movie"
           ? item.type === "movie"
           : item.type === "series";
-        const lang = String(item.language || "").toLowerCase();
-        const german = lang === "de" || lang === "de-de" || lang.startsWith("de-");
-        return typeOk && german && matches(item.name, titles);
+        return typeOk && matches(item.name, titles);
       });
       if (!searchItems.length) return [];
 
