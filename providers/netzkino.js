@@ -35,7 +35,8 @@ module.exports = {
       }
 
       const streams = [];
-      for (const post of found.values()) {
+      // Keep comfortably below DebridUI's 24-request provider limit.
+      for (const post of Array.from(found.values()).slice(0, 8)) {
         const detail = await json(API + "/movies/" + encodeURIComponent(post.id) + ".json?d=www");
         const fields = detail.custom_fields || {};
         const streamSlugs = list(fields.Streaming);
