@@ -1,6 +1,6 @@
 {
   "name": "German Providers für DebridUI",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Deutsche Serien- und Filmquellen, für DebridUI angepasst.",
   "providers": [
     {
@@ -19,6 +19,17 @@
       "description": "Mediathek für deutsche Filme und Serien inklusive direkter Video-Streams.",
       "version": "1.0.0",
       "filename": "providers/zdf.js",
+      "supportedTypes": [
+        "movie",
+        "tv"
+      ]
+    },
+    {
+      "id": "plutotv",
+      "name": "Pluto TV",
+      "description": "Deutsche On-Demand-Filme und Serien mit HLS-/DASH-Streams.",
+      "version": "1.0.0",
+      "filename": "providers/plutotv.js",
       "supportedTypes": [
         "movie",
         "tv"
