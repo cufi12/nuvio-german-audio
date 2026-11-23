@@ -487,7 +487,7 @@ function getStreams(tmdbId, mediaType, season, episode) {
         const embed = yield followRedirect(l.url, epUrl).catch(() => null);
         return (yield resolveEmbed(embed, epUrl)).map((s) => ({
           name: "Serienstream",
-          title: \`\${s.host} · \${l.lang || "Unbekannte Sprache"}\`,
+          title: s.host + " · " + (l.lang || "Unbekannte Sprache"),
           url: s.url,
           quality: s.quality,
           headers: s.headers
