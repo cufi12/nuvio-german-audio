@@ -1,6 +1,6 @@
 {
   "name": "German Providers für DebridUI",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Deutsche Serien- und Filmquellen, für DebridUI angepasst.",
   "providers": [
     {
@@ -9,9 +9,31 @@
       "description": "Deutsche Serienquelle; sucht Serien über TMDB und löst Episoden-Hoster auf.",
       "version": "1.0.0",
       "filename": "providers/serienstream.js",
-      "supportedTypes": [
-        "tv"
-      ]
+      "supportedTypes": ["tv"]
+    },
+    {
+      "id": "netzkino",
+      "name": "Netzkino",
+      "description": "Deutsche Filmquelle mit direkten MP4-Streams.",
+      "version": "1.0.0",
+      "filename": "providers/netzkino.js",
+      "supportedTypes": ["movie"]
+    },
+    {
+      "id": "zdf",
+      "name": "ZDF",
+      "description": "ZDF-Mediathek für Filme und Serien; gibt nur als Deutsch gekennzeichnete Audiospuren zurück.",
+      "version": "1.1.0",
+      "filename": "providers/zdf.js",
+      "supportedTypes": ["movie", "tv"]
+    },
+    {
+      "id": "plutotv",
+      "name": "Pluto TV",
+      "description": "Pluto-TV-On-Demand-Filme und -Serien mit HLS-/DASH-Streams; Sprache je nach Katalogeintrag.",
+      "version": "1.1.0",
+      "filename": "providers/plutotv.js",
+      "supportedTypes": ["movie", "tv"]
     }
   ]
 }
