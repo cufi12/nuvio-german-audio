@@ -1,0 +1,24 @@
+name: Validate Nuvio providers
+
+on:
+  pull_request:
+    paths:
+      - "nuvio/**"
+      - "scripts/validate-nuvio.mjs"
+      - ".github/workflows/validate-nuvio.yml"
+  push:
+    branches: [main]
+    paths:
+      - "nuvio/**"
+      - "scripts/validate-nuvio.mjs"
+      - ".github/workflows/validate-nuvio.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/validate-nuvio.mjs
