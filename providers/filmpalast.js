@@ -16,6 +16,15 @@ async function request(url, options) {
 }
 async function getText(url, options) { return (await request(url, options)).text(); }
 async function getJson(url, options) { return JSON.parse(await getText(url, options)); }
+async function postJson(url, body, options) {
+  return getJson(url, { ...(options || {}), method: "POST", body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", ...((options && options.headers) || {}) } });
+}
+async function postForm(url, form, options) {
+  const body = Object.keys(form).map(key => encodeURIComponent(key) + "=" + encodeURIComponent(form[key])).join("&");
+  return getText(url, { ...(options || {}), method: "POST", body,
+    headers: { "Content-Type": "application/x-www-form-urlencoded", ...((options && options.headers) || {}) } });
+}
 function origin(url) { return url.match(/^https?:\/\/[^/]+/i)[0]; }
 function all($, selector, context) { return (context ? $(selector, context) : $(selector)).toArray().map(e => $(e)); }
 function norm(s) {
@@ -92,14 +101,20 @@ function quality(label) {
   return match ? match[1] + "p" : "auto";
 }
 function unpack(html) {
-  const packed = (html.match(/eval\(function\(p,a,c,k,e,[\s\S]*?\.split\('\|'\)[^)]*\)\)/) || [])[0];
-  const match = packed && packed.match(/\}\s*\('([\s\S]*)',\s*(.*?),\s*(\d+),\s*'([\s\S]*?)'\.split\('\|'/);
+  const packed = (html.match(/eval\\(function\\(p,a,c,k,e,[\\s\\S]*?\\.split\\('\\|'\\)[^)]*\\)\\)/) || [])[0];
+  const match = packed && packed.match(/\\}\\s*\\('([\\s\\S]*)',\\s*(.*?),\\s*(\\d+),\\s*'([\\s\\S]*?)'\\.split\\('\\|'\\'/);
   if (!match) return null;
-  const payload = match[1].replace(/\\'/g, "'");
+  const payload = match[1].replace(/\\\\'/g, "'");
   const radix = parseInt(match[2], 10) || 36;
   const words = match[4].split("|");
   if (words.length !== Number(match[3])) return null;
-  return payload.replace(/\b\w+\b/g, word => words[parseInt(word, radix)] || word);
+  const alphabet = radix > 36 && radix <= 62
+    ? "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, radix)
+    : null;
+  const decode = word => alphabet
+    ? word.split("").reverse().reduce((value, char, index) => value + Math.pow(radix, index) * alphabet.indexOf(char), 0)
+    : parseInt(word, radix);
+  return payload.replace(/\\b\\w+\\b/g, word => words[decode(word)] || word);
 }
 function jwplayer(script, base) {
   const fix = value => {
@@ -176,6 +191,13 @@ async function vidstack(url) {
   }
   return [];
 }
+async function lulustream(url, referer) {
+  const html = await postForm(origin(url) + "/dl", {
+    op: "embed", file_code: url.split("/").pop(), auto: "1", referer: referer || ""
+  });
+  const script = scripts(html).find(s => s.includes("vplayer")) || "";
+  return jwplayer(script, url).map(stream => ({ ...stream, headers: { Referer: origin(url) + "/" } }));
+}
 async function genericHost(url, referer, kind) {
   const embed = kind === "dood" ? url.replace("/d/", "/e/") :
     kind === "vidhide" ? url.replace(/\/(d|download|file|f)\//, "/v/") :
@@ -213,12 +235,40 @@ async function genericHost(url, referer, kind) {
     Referer: origin(embed) + "/", Origin: origin(embed), "User-Agent": UA
   }}));
 }
+async function sniff(url, referer) {
+  const html = await getText(url, { headers: { Referer: referer || url } });
+  if (html.includes("/pass_md5/")) return dood(url);
+  if (html.includes('"/api/stream"') && html.includes("filecode")) {
+    const data = await postJson(origin(url) + "/api/stream", {
+      filecode: url.split("/").filter(Boolean).pop(), device: "web"
+    }, { headers: { Referer: url } });
+    return data.streaming_url ? [{ url: data.streaming_url, quality: "auto", headers: { Referer: origin(url) + "/" } }] : [];
+  }
+  const blob = (html.match(/id="token-blob"[^>]*>([^<]*)</) || [])[1];
+  if (blob) {
+    const id = url.split("?")[0].split("/").pop();
+    const data = await postJson(origin(url) + "/api/videos/" + id + "/resolve", { blob: blob.trim() }, { headers: { Referer: url } });
+    return data.signedVideoUrl ? [{ url: data.signedVideoUrl, quality: "auto", headers: { Referer: origin(url) + "/", Origin: origin(url) } }] : [];
+  }
+  const hex = (html.match(/_0x1 = '([0-9a-f|]+)'/) || [])[1];
+  if (hex) {
+    const value = hex.split("|").join("").replace(/../g, byte => String.fromCharCode(parseInt(byte, 16)));
+    return [{ url: value.split("").reverse().join(""), quality: "auto", headers: { Referer: origin(url) + "/" } }];
+  }
+  if (html.includes("application/json") && /window\\.location\\.href|voe/i.test(html)) return voe(url, referer);
+  if (html.includes("sourcesCode:")) return genericHost(url, referer, "vidoza");
+  if (html.includes("botlink').innerHTML")) return genericHost(url, referer, "streamtape");
+  let found = jwplayer(unpack(html) || "", url);
+  if (!found.length) found = jwplayer(scripts(html).find(s => s.includes("sources:")) || "", url);
+  return found.map(stream => ({ ...stream, headers: { Referer: origin(url) + "/", Origin: origin(url), "User-Agent": UA } }));
+}
 const HOSTS = [
   ["voe", ["voe.sx","goofy-banana.com","urochsunloath.com","donaldlineelse.com","charlestoughrace.com","tubelessceliolymph.com","simpulumlamerop.com","nathanfromsubject.com","yip.su","metagnathtuggers.com"]],
   ["vidstack", ["moflix.upns.xyz","moflix.rpmplay.xyz"]],
   ["supervideo", ["supervideo","dropload","abstream.to","dr0pstream.com"]],
   ["vidhide", ["vidhide","filelions","ryderjet.com","moflix-stream.click","smoothpre.com","dhtpre.com","peytonepre.com"]],
   ["streamwish", ["streamwish","luluvdo.com","streamruby.com","savefiles.com","wishembed","swdyu.com","strwish"]],
+  ["lulustream", ["lulustream.com","luluvdoo.com"]],
   ["mixdrop", ["mixdrop","mixdrp","mxdrop","mdy48tn97.com"]],
   ["filemoon", ["filemoon"]], ["vidoza", ["vidoza.net","videzz.net"]],
   ["streamtape", ["streamtape","watchadsontape.com","shavetape.cash"]]
@@ -237,14 +287,7 @@ async function resolveEmbed(url, referer) {
     if (hit && hit[0] === "voe") streams = await voe(url, referer);
     else if (hit && hit[0] === "vidstack") streams = await vidstack(url);
     else if (hit) streams = await genericHost(url, referer, hit[0]);
-    else {
-      const html = await getText(url, { headers: { Referer: referer || url } });
-      if (html.includes("/pass_md5/")) streams = await dood(url);
-      else if (html.includes("sourcesCode:")) streams = await genericHost(url, referer, "vidoza");
-      else if (html.includes("botlink').innerHTML")) streams = await genericHost(url, referer, "streamtape");
-      else if (html.includes("application/json") && /window\.location\.href|voe/i.test(html)) streams = await voe(url, referer);
-      else streams = jwplayer(unpack(html) || scripts(html).find(s => s.includes("sources:")) || "", url);
-    }
+    else streams = await sniff(url, referer);
     return (streams || []).filter(s => s.url).map(s => ({ ...s, host }));
   } catch (error) {
     console.error("[FilmPalast extractor] " + host + ": " + (error.message || String(error)));
