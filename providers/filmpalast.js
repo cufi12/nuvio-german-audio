@@ -101,10 +101,10 @@ function quality(label) {
   return match ? match[1] + "p" : "auto";
 }
 function unpack(html) {
-  const packed = (html.match(/eval\\(function\\(p,a,c,k,e,[\\s\\S]*?\\.split\\('\\|'\\)[^)]*\\)\\)/) || [])[0];
-  const match = packed && packed.match(/\\}\\s*\\('([\\s\\S]*)',\\s*(.*?),\\s*(\\d+),\\s*'([\\s\\S]*?)'\\.split\\('\\|'\\'/);
+  const packed = (html.match(/eval\(function\(p,a,c,k,e,[\s\S]*?\.split\('\|'\)[^)]*\)\)/) || [])[0];
+  const match = packed && packed.match(/\}\s*\('([\s\S]*)',\s*(.*?),\s*(\d+),\s*'([\s\S]*?)'\.split\('\|'/);
   if (!match) return null;
-  const payload = match[1].replace(/\\\\'/g, "'");
+  const payload = match[1].replace(/\\'/g, "'");
   const radix = parseInt(match[2], 10) || 36;
   const words = match[4].split("|");
   if (words.length !== Number(match[3])) return null;
@@ -114,7 +114,7 @@ function unpack(html) {
   const decode = word => alphabet
     ? word.split("").reverse().reduce((value, char, index) => value + Math.pow(radix, index) * alphabet.indexOf(char), 0)
     : parseInt(word, radix);
-  return payload.replace(/\\b\\w+\\b/g, word => words[decode(word)] || word);
+  return payload.replace(/\b\w+\b/g, word => words[decode(word)] || word);
 }
 function jwplayer(script, base) {
   const fix = value => {
@@ -255,7 +255,7 @@ async function sniff(url, referer) {
     const value = hex.split("|").join("").replace(/../g, byte => String.fromCharCode(parseInt(byte, 16)));
     return [{ url: value.split("").reverse().join(""), quality: "auto", headers: { Referer: origin(url) + "/" } }];
   }
-  if (html.includes("application/json") && /window\\.location\\.href|voe/i.test(html)) return voe(url, referer);
+  if (html.includes("application/json") && /window\.location\.href|voe/i.test(html)) return voe(url, referer);
   if (html.includes("sourcesCode:")) return genericHost(url, referer, "vidoza");
   if (html.includes("botlink').innerHTML")) return genericHost(url, referer, "streamtape");
   let found = jwplayer(unpack(html) || "", url);
