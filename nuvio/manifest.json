@@ -1,26 +1,18 @@
 {
   "name": "German Providers für Nuvio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scrapers": [
     {
       "id": "serienstream",
       "name": "CVN-Serienstream",
       "description": "Deutsche Serienquelle mit Episoden- und Hoster-Auflösung.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": "cufi12",
-      "supportedTypes": [
-        "tv"
-      ],
-      "filename": "nuvio/providers/serienstream.js",
+      "supportedTypes": ["tv"],
+      "filename": "providers/serienstream.js",
       "enabled": true,
-      "formats": [
-        "mp4",
-        "hls",
-        "m3u8"
-      ],
-      "contentLanguage": [
-        "de"
-      ],
+      "formats": ["mp4", "hls", "m3u8"],
+      "contentLanguage": ["de"],
       "limited": false,
       "disabledPlatforms": []
     },
@@ -28,19 +20,13 @@
       "id": "netzkino",
       "name": "CVN-Netzkino",
       "description": "Deutsche Filme aus dem Netzkino-Katalog.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": "cufi12",
-      "supportedTypes": [
-        "movie"
-      ],
-      "filename": "nuvio/providers/netzkino.js",
+      "supportedTypes": ["movie"],
+      "filename": "providers/netzkino.js",
       "enabled": true,
-      "formats": [
-        "mp4"
-      ],
-      "contentLanguage": [
-        "de"
-      ],
+      "formats": ["mp4"],
+      "contentLanguage": ["de"],
       "limited": false,
       "disabledPlatforms": []
     },
@@ -48,22 +34,13 @@
       "id": "zdf",
       "name": "CVN-ZDF",
       "description": "ZDF-Mediathek für Filme und Serien; bevorzugt deutsch gekennzeichnete Audiospuren.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": "cufi12",
-      "supportedTypes": [
-        "movie",
-        "tv"
-      ],
-      "filename": "nuvio/providers/zdf.js",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/zdf.js",
       "enabled": true,
-      "formats": [
-        "mp4",
-        "hls",
-        "m3u8"
-      ],
-      "contentLanguage": [
-        "de"
-      ],
+      "formats": ["mp4", "hls", "m3u8"],
+      "contentLanguage": ["de"],
       "limited": false,
       "disabledPlatforms": []
     },
@@ -71,22 +48,13 @@
       "id": "plutotv",
       "name": "CVN-Pluto TV",
       "description": "Pluto-TV-On-Demand-Filme und -Serien; Sprache abhängig vom Katalogeintrag.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": "cufi12",
-      "supportedTypes": [
-        "movie",
-        "tv"
-      ],
-      "filename": "nuvio/providers/plutotv.js",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/plutotv.js",
       "enabled": true,
-      "formats": [
-        "mp4",
-        "hls",
-        "m3u8"
-      ],
-      "contentLanguage": [
-        "de"
-      ],
+      "formats": ["mp4", "hls", "m3u8"],
+      "contentLanguage": ["de"],
       "limited": false,
       "disabledPlatforms": []
     }
