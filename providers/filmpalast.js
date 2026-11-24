@@ -306,7 +306,7 @@ module.exports = {
         return { host: $(".hostName", ul).text().trim(), link: a.attr("data-player-url") || a.attr("href") };
       }).filter(m => /^https?:/i.test(m.link || "")).slice(0, 6);
       const groups = await Promise.all(mirrors.map(async mirror => {
-        const resolved = await resolveEmbed(mirror.link, BASE + "/");
+        const resolved = await resolveEmbed(mirror.link, pageUrl);
         return resolved.map(stream => ({
           name: "FilmPalast · Deutsch",
           title: (mirror.host || stream.host) + " · Deutsch" +
